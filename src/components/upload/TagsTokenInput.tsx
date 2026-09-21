@@ -1,5 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import {
+    useEffect,
+    useRef,
+    useState,
+    type KeyboardEvent,
+} from 'react';
 import { useQuery } from '@tanstack/react-query';
+
 import { fetchDocumentTags } from '@/api/tags.api';
 import { queryKeys } from '@/constants/queryKeys';
 import { useDebounce } from '@/hooks/useDebouce';
@@ -66,7 +72,9 @@ export function TagTokenInput({
         onChange(value.filter((item) => item !== tag));
     }
 
-    function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    function handleKeyDown(
+        event: KeyboardEvent<HTMLInputElement>
+    ) {
         if (
             (event.key === 'Enter' || event.key === ',') &&
             input.trim()
@@ -75,13 +83,17 @@ export function TagTokenInput({
             addTag(input);
         }
 
-        if (event.key === 'Backspace' && !input && value.length > 0) {
+        if (
+            event.key === 'Backspace' &&
+            !input &&
+            value.length > 0
+        ) {
             removeTag(value[value.length - 1]);
         }
     }
 
     const filteredSuggestions = suggestions
-        .map((tag) => tag.tag_name)
+        .map((tag) => tag.label)
         .filter((tag) => !value.includes(tag))
         .slice(0, 8);
 
