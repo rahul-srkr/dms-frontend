@@ -4,14 +4,15 @@ import { apiClient } from '@/api/client';
 import type { DocumentResult } from '@/api/schemas/document.schema';
 import { Modal } from '@/components/ui/Modal';
 import { Spinner } from '@/components/ui/Spinner';
-import {
-    isImageFile,
-    isPdfFile,
-} from '@/utils/file.utils';
 
 interface FilePreviewModalProps {
     doc: DocumentResult;
     onClose: () => void;
+}
+
+function getFileExtension(url: string): string {
+    const path = url.split('?')[0];
+    return path.split('.').pop()?.toLowerCase() ?? '';
 }
 
 export function FilePreviewModal({
@@ -23,12 +24,6 @@ export function FilePreviewModal({
     const [fetchError, setFetchError] = useState(false);
 
     useEffect(() => {
-        if (!doc.file_url) {
-            setLoading(false);
-            setFetchError(true);
-            return;
-        }
-
         let objectUrl: string | undefined;
 
         setLoading(true);
@@ -36,7 +31,9 @@ export function FilePreviewModal({
         setBlobUrl(undefined);
 
         apiClient
-            .get(doc.file_url, { responseType: 'blob' })
+            .get(doc.file_url, {
+                responseType: 'blob',
+            })
             .then((response) => {
                 objectUrl = URL.createObjectURL(response.data);
                 setBlobUrl(objectUrl);
@@ -54,8 +51,6 @@ export function FilePreviewModal({
             }
         };
     }, [doc.file_url]);
-
-    const fileType = doc.file_type ?? '';
 
     function renderContent() {
         if (loading) {
@@ -76,35 +71,38 @@ export function FilePreviewModal({
                         Could not load preview.
                     </p>
 
-                    {doc.file_url && (
-                        <a
-                            href={doc.file_url}
-                            download={doc.file_name}
-                            className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                        >
-                            Download instead
-                        </a>
-                    )}
+                    <a
+                        href={doc.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                    >
+                        Open file
+                    </a>
                 </div>
             );
         }
 
-        if (isPdfFile(fileType)) {
+        const extension = getFileExtension(doc.file_url);
+
+        if (extension === 'pdf') {
             return (
                 <iframe
                     src={blobUrl}
-                    title={`PDF Preview: ${doc.file_name}`}
+                    title={`PDF Preview - Document ${doc.document_id}`}
                     className="h-[70vh] w-full rounded-lg border"
                 />
             );
         }
 
-        if (isImageFile(fileType)) {
+        if (
+            ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension)
+        ) {
             return (
                 <div className="flex max-h-[70vh] justify-center overflow-auto">
                     <img
                         src={blobUrl}
-                        alt={doc.file_name}
+                        alt={`Document ${doc.document_id}`}
                         className="max-h-[70vh] max-w-full object-contain"
                     />
                 </div>
@@ -119,7 +117,7 @@ export function FilePreviewModal({
 
                 <a
                     href={blobUrl}
-                    download={doc.file_name}
+                    download
                     className="text-sm font-medium text-blue-600 hover:text-blue-700"
                 >
                     Download to view
@@ -132,7 +130,7 @@ export function FilePreviewModal({
         <Modal
             isOpen
             onClose={onClose}
-            title={doc.file_name ?? `Document ${doc.id}`}
+            title={`Document ${doc.document_id}`}
             size="xl"
         >
             {renderContent()}

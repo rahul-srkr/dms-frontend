@@ -1,7 +1,7 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 
-import type { SearchDocumentResponse } from '@/api/schemas/document.schema';
 import { apiClient } from '@/api/client';
+import type { SearchDocumentResponse } from '@/api/schemas/document.schema';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Spinner } from '@/components/ui/Spinner';
 import { toast } from '@/lib/toast';
@@ -10,6 +10,13 @@ import { VirtualizedResultList } from './VirtualizedResultList';
 
 interface SearchResultsProps {
     query: UseQueryResult<SearchDocumentResponse, Error>;
+}
+
+function getFileName(url: string, documentId: number): string {
+    const path = url.split('?')[0];
+    const fileName = path.split('/').pop();
+
+    return fileName || `document-${documentId}`;
 }
 
 export function SearchResults({ query }: SearchResultsProps) {
@@ -30,7 +37,9 @@ export function SearchResults({ query }: SearchResultsProps) {
                 aria-live="polite"
             >
                 <Spinner size="lg" />
-                <p className="text-sm text-gray-500">Searching documents...</p>
+                <p className="text-sm text-gray-500">
+                    Searching documents...
+                </p>
             </div>
         );
     }
@@ -40,7 +49,9 @@ export function SearchResults({ query }: SearchResultsProps) {
             <div role="alert">
                 <EmptyState
                     title="Search failed"
-                    message={error.message || 'Something went wrong. Please try again.'}
+                    message={
+                        error.message || 'Something went wrong. Please try again.'
+                    }
                     action={
                         <button
                             type="button"
@@ -74,7 +85,9 @@ export function SearchResults({ query }: SearchResultsProps) {
     }
 
     async function handleDownloadAll() {
-        const documents = data.data.filter((document) => document.file_url);
+        const documents = data.data.filter(
+            (document) => document.file_url
+        );
 
         if (documents.length === 0) {
             toast.error('No downloadable files in results.');
@@ -88,19 +101,28 @@ export function SearchResults({ query }: SearchResultsProps) {
         try {
             const files = await Promise.all(
                 documents.map(async (document) => {
-                    const response = await apiClient.get(document.file_url!, {
-                        responseType: 'arraybuffer',
-                    });
+                    const response = await apiClient.get(
+                        document.file_url,
+                        {
+                            responseType: 'arraybuffer',
+                        }
+                    );
 
                     return {
-                        name: document.file_name ?? `file-${document.id}`,
+                        name: getFileName(
+                            document.file_url,
+                            document.document_id
+                        ),
                         data: response.data as ArrayBuffer,
                     };
                 })
             );
 
             const worker = new Worker(
-                new URL('../../../workers/zip.worker.ts', import.meta.url),
+                new URL(
+                    '../../../workers/zip.worker.ts',
+                    import.meta.url
+                ),
                 { type: 'module' }
             );
 
@@ -140,8 +162,8 @@ export function SearchResults({ query }: SearchResultsProps) {
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-700">
-                        {data.recordsTotal.toLocaleString()}{' '}
-                        {data.recordsTotal === 1 ? 'result' : 'results'}
+                        {data.recordsFiltered.toLocaleString()}{' '}
+                        {data.recordsFiltered === 1 ? 'result' : 'results'}
                     </span>
 
                     {isFetching && <Spinner size="sm" />}

@@ -3,31 +3,36 @@ import { useState } from 'react';
 import { apiClient } from '@/api/client';
 import type { DocumentResult } from '@/api/schemas/document.schema';
 import { Badge } from '@/components/ui/Badge';
+import { FilePreviewModal } from '@/components/preview/FilePreviewModal';
 import { toast } from '@/lib/toast';
 import { formatDisplayDate } from '@/utils/date.utils';
-import {
-    isImageFile,
-    isPdfFile,
-} from '@/utils/file.utils';
-
-import { FilePreviewModal } from '@/components/preview/FilePreviewModal';
 
 interface ResultCardProps {
     item: DocumentResult;
 }
 
+function getFileExtension(url: string): string {
+    const path = url.split('?')[0];
+    return path.split('.').pop()?.toLowerCase() ?? '';
+}
+
 export function ResultCard({ item }: ResultCardProps) {
     const [showPreview, setShowPreview] = useState(false);
 
-    const isPdf = isPdfFile(item.file_type ?? '');
-    const isImage = isImageFile(item.file_type ?? '');
+    const fileExtension = getFileExtension(item.file_url);
+
+    const isPdf = fileExtension === 'pdf';
+
+    const isImage = [
+        'jpg',
+        'jpeg',
+        'png',
+        'gif',
+        'webp',
+        'svg',
+    ].includes(fileExtension);
 
     async function handleDownload() {
-        if (!item.file_url) {
-            toast.error('Download URL not available.');
-            return;
-        }
-
         try {
             const response = await apiClient.get(item.file_url, {
                 responseType: 'blob',
@@ -37,7 +42,7 @@ export function ResultCard({ item }: ResultCardProps) {
             const link = document.createElement('a');
 
             link.href = url;
-            link.download = item.file_name ?? `document-${item.id}`;
+            link.download = `document-${item.document_id}.${fileExtension}`;
             link.click();
 
             URL.revokeObjectURL(url);
@@ -50,7 +55,7 @@ export function ResultCard({ item }: ResultCardProps) {
         <>
             <div className="flex gap-4 rounded-xl border bg-white p-4 shadow-sm">
                 <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isPdf
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-xs font-semibold ${isPdf
                             ? 'bg-red-100 text-red-600'
                             : isImage
                                 ? 'bg-blue-100 text-blue-600'
@@ -64,10 +69,10 @@ export function ResultCard({ item }: ResultCardProps) {
                     <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
                             <p
-                                className="truncate font-medium text-gray-900"
-                                title={item.file_name}
+                                className="font-medium text-gray-900"
+                                title={`Document ${item.document_id}`}
                             >
-                                {item.file_name ?? `Document ${item.id}`}
+                                Document {item.document_id}
                             </p>
 
                             <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500">
@@ -119,22 +124,6 @@ export function ResultCard({ item }: ResultCardProps) {
                         </div>
                     </div>
 
-                    {item.tags && item.tags.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                            {item.tags.slice(0, 5).map((tag) => (
-                                <Badge key={tag.tag_name} variant="primary">
-                                    #{tag.tag_name}
-                                </Badge>
-                            ))}
-
-                            {item.tags.length > 5 && (
-                                <span className="px-2 py-1 text-xs text-gray-500">
-                                    +{item.tags.length - 5}
-                                </span>
-                            )}
-                        </div>
-                    )}
-
                     {item.document_remarks && (
                         <p
                             className="mt-3 truncate text-sm text-gray-600"
@@ -143,6 +132,10 @@ export function ResultCard({ item }: ResultCardProps) {
                             {item.document_remarks}
                         </p>
                     )}
+
+                    <p className="mt-2 text-xs text-gray-400">
+                        Uploaded {formatDisplayDate(item.upload_time.split('T')[0])}
+                    </p>
                 </div>
             </div>
 
