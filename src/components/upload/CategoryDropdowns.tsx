@@ -23,7 +23,7 @@ export function CategoryDropdowns({
     minorError,
 }: CategoryDropdownsProps) {
     const minorOptions = majorHead
-        ? MINOR_HEAD_MAP[majorHead] ?? []
+        ? MINOR_HEAD_MAP[majorHead as keyof typeof MINOR_HEAD_MAP] ?? []
         : [];
 
     function handleMajorChange(event: ChangeEvent<HTMLSelectElement>) {

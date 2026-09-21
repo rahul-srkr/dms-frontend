@@ -85,6 +85,8 @@ export function SearchResults({ query }: SearchResultsProps) {
     }
 
     async function handleDownloadAll() {
+        if (!data) return;
+
         const documents = data.data.filter(
             (document) => document.file_url
         );
@@ -120,7 +122,7 @@ export function SearchResults({ query }: SearchResultsProps) {
 
             const worker = new Worker(
                 new URL(
-                    '../../../workers/zip.worker.ts',
+                    '../../workers/zip.worker.ts',
                     import.meta.url
                 ),
                 { type: 'module' }

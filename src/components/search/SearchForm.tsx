@@ -28,7 +28,7 @@ export function SearchForm({
     );
 
     const minorOptions = form.majorHead
-        ? MINOR_HEAD_MAP[form.majorHead] ?? []
+        ? MINOR_HEAD_MAP[form.majorHead as keyof typeof MINOR_HEAD_MAP] ?? []
         : [];
 
     function handleSubmit(event: FormEvent) {
