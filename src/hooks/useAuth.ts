@@ -1,8 +1,9 @@
 import { useMutation } from '@tanstack/react-query';
+
 import { generateOTP, validateOTP } from '@/api/auth.api';
-import { useAuthContext } from '@/context/AuthContext';
-import { toast } from '@/lib/toast';
 import { getErrorMessage } from '@/api/errors';
+import { toast } from '@/lib/toast';
+import { useAuthContext } from '@/context/AuthContext';
 
 export function useAuth() {
     const { login, logout, user, isAuthenticated } = useAuthContext();
@@ -17,7 +18,7 @@ export function useAuth() {
     const validateOTPMutation = useMutation({
         mutationFn: validateOTP,
         onSuccess: (data, variables) => {
-            login(variables.mobile_number, data.token);
+            login(variables.mobile_number, data.data.token);
             toast.success('Login successful!');
         },
         onError: (error) => {
