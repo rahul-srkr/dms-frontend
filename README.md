@@ -1,75 +1,238 @@
-# React + TypeScript + Vite
+# Document Management System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A responsive document management application built with React, TypeScript, Vite, and Tailwind CSS.
 
-Currently, two official plugins are available:
+The application allows authenticated users to upload, search, preview, and download documents using categories, dates, tags, and search filters.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+* OTP-based mobile number authentication
+* Protected application routes
+* Document upload with:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+  * JPEG
+  * PNG
+  * GIF
+  * WebP
+  * PDF
+* Maximum file size validation
+* Category and sub-category selection
+* Document date selection
+* Mandatory document tags
+* Optional document remarks
+* Tag suggestions from the API
+* Document search and filtering
+* Search results with pagination support
+* PDF and image preview
+* Individual document download
+* Download all search results as ZIP
+* Offline search support using IndexedDB cache
+* Responsive layout for desktop, tablet, and mobile
+* Online/offline status indication
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+* React
+* TypeScript
+* Vite
+* React Router
+* TanStack React Query
+* Axios
+* Zod
+* Tailwind CSS
+* React Day Picker
+* Dexie
+* date-fns
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Project Structure
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+```text
+src/
+├── api/
+│   ├── client.ts
+│   ├── auth.api.ts
+│   ├── documents.api.ts
+│   ├── tags.api.ts
+│   └── schemas/
+│
+├── components/
+│   ├── auth/
+│   ├── layout/
+│   └── ui/
+│
+├── constants/
+│
+├── context/
+│
+├── features/
+│   ├── search/
+│   └── upload/
+│
+├── hooks/
+│
+├── lib/
+│
+├── pages/
+│
+├── utils/
+│
+└── workers/
+```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Requirements
+
+Make sure the following are installed:
+
+* Node.js
+* npm
+
+## Installation
+
+Clone the repository and install dependencies:
+
+```bash
+npm install
+```
+
+## Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+VITE_API_BASE_URL=https://apis.allsoft.co/api/documentManagement
+```
+
+The application uses this value as the base URL for the backend API.
+
+## Run the Application
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+The application will be available at the local URL shown by Vite.
+
+## Build for Production
+
+Create a production build:
+
+```bash
+npm run build
+```
+
+To preview the production build locally:
+
+```bash
+npm run preview
+```
+
+## Authentication Flow
+
+The application uses OTP-based authentication.
+
+```text
+Enter Mobile Number
+        ↓
+Generate OTP
+        ↓
+Enter OTP
+        ↓
+Validate OTP
+        ↓
+Receive Authentication Token
+        ↓
+Access Protected Application
+```
+
+The authentication token is stored in `sessionStorage` and automatically added to authenticated API requests.
+
+## Document Upload
+
+Users can upload supported documents by providing:
+
+* Document file
+* Category
+* Sub-category
+* Document date
+* At least one tag
+* Optional remarks
+
+The upload request sends the document as `multipart/form-data`.
+
+## Document Search
+
+Documents can be searched using:
+
+* Category
+* Sub-category
+* Date range
+* Tags
+* Search text
+
+Search parameters are reflected in the URL so that the search state can be preserved and shared.
+
+## Document Preview
+
+The application supports previewing:
+
+* PDF files
+* JPG/JPEG images
+* PNG images
+* GIF images
+* WebP images
+* SVG images returned by the search API
+
+Other file types can be downloaded for local viewing.
+
+## Offline Support
+
+Search results are cached locally using IndexedDB through Dexie.
+
+When the application is offline, previously cached search results can be displayed where available.
+
+## API Endpoints
+
+The application communicates with the Document Management API.
+
+### Authentication
+
+```text
+POST /generateOTP
+POST /validateOTP
+```
+
+### Documents
+
+```text
+POST /saveDocumentEntry
+POST /searchDocumentEntry
+```
+
+### Tags
+
+```text
+POST /documentTags
+```
+
+## Development
+
+Run the application:
+
+```bash
+npm run dev
+```
+
+Run the production build:
+
+```bash
+npm run build
+```
+
+The project uses TypeScript for type safety, Zod for API response validation, and React Query for server-state management.
 
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+This is much more appropriate for your assignment than the default Vite README. I also kept it straightforward rather than adding unnecessary architecture or documentation that isn't actually implemented.
 ```
